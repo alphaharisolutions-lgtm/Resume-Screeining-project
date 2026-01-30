@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Overview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        :root {
+            --primary: #f43f5e;
+            --bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        aside {
+            background: var(--sidebar-bg);
+            padding: 2rem;
+            border-right: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        main {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(to right, #f43f5e, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            transition: 0.3s;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        nav a:hover,
+        nav a.active {
+            background: rgba(244, 63, 94, 0.05);
+            color: var(--primary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .stat-card p {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 20px;
+            height: 350px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="data-store" data-roles='{{ roles | tojson | safe }}' style="display:none"></div>
+
+    <aside>
+        <div class="logo">Admin Pro</div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('admin_dashboard') }}" class="active">Overview</a></li>
+                <li><a href="{{ url_for('admin_users') }}">User Management</a></li>
+                <li><a href="{{ url_for('admin_applications_global') }}">Applications</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main>
+        <div style="margin-bottom: 2rem;">
+            <h1>Platform Overview</h1>
+            <p style="color:var(--text-muted)">Welcome back, Admin</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Users</h3>
+                <p>{{ stats.users }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Resumes Processed</h3>
+                <p>{{ stats.resumes }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Active Job Postings</h3>
+                <p>{{ stats.jobs }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>System Avg. Score</h3>
+                <p>{{ stats.avg_score }}%</p>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-card" id="userRatio"></div>
+            <div class="chart-card" id="activityTrend"></div>
+        </div>
+    </main>
+
+    <script>
+        const rolesData = JSON.parse(document.getElementById('data-store').dataset.roles);
+        const hasData = Object.values(rolesData).some(v => v > 0);
+
+        // User Ecosystem Chart
+        Plotly.newPlot('userRatio', [{
+            values: Object.values(rolesData),
+            labels: Object.keys(rolesData).map(r => r.toUpperCase()),
+            type: 'pie',
+            hole: 0.4,
+            textinfo: hasData ? 'percent' : 'none',
+            textposition: 'inside',
+            marker: { colors: ['#6366f1', '#fbbf24', '#8b5cf6', '#f43f5e'] }
+        }], {
+            title: {
+                text: 'User Role Distribution',
+                font: { size: 18, family: 'Outfit', color: '#1e293b' },
+                pad: { b: 20 }
+            },
+            showlegend: true,
+            legend: { orientation: 'h', y: -0.2 },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { family: 'Outfit', color: '#1e293b' },
+            margin: { t: 80, b: 40, l: 20, r: 20 },
+            height: 350
+        }, { responsive: true });
+
+        // Weekly Activity Chart
+        Plotly.newPlot('activityTrend', [{
+            x: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            y: [50, 80, 45, 90, 120, 30, 20],
+            type: 'scatter',
+            mode: 'lines+markers',
+            line: { color: '#f43f5e', width: 3, shape: 'spline' },
+            marker: { size: 8, color: '#be123c' },
+            fill: 'tozeroy',
+            fillcolor: 'rgba(244, 63, 94, 0.1)'
+        }], {
+            title: {
+                text: 'Weekly Platform Activity',
+                font: { size: 18, family: 'Outfit', color: '#1e293b' }
+            },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { family: 'Outfit', color: '#1e293b' },
+            margin: { t: 60, b: 40, l: 40, r: 20 },
+            xaxis: { gridcolor: '#f1f5f9', showline: false },
+            yaxis: { gridcolor: '#f1f5f9', showline: false },
+            height: 350
+        }, { responsive: true });
+    </script>
+</body>
+
+</html>

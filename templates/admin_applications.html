@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Applications</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #f43f5e;
+            --bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        aside {
+            background: var(--sidebar-bg);
+            padding: 2rem;
+            border-right: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        main {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(to right, #f43f5e, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            transition: 0.3s;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        nav a:hover,
+        nav a.active {
+            background: rgba(244, 63, 94, 0.05);
+            color: var(--primary);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem;
+            background: #f8fafc;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9375rem;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .status-unseen {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .status-shortlisted {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .status-interview_scheduled {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+    </style>
+</head>
+
+<body>
+    <aside>
+        <div class="logo">Admin Pro</div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('admin_dashboard') }}">Overview</a></li>
+                <li><a href="{{ url_for('admin_users') }}">User Management</a></li>
+                <li><a href="{{ url_for('admin_applications_global') }}" class="active">Applications</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main>
+        <div style="margin-bottom: 2rem;">
+            <h1>Platform Applications</h1>
+            <p style="color:var(--text-muted)">Global log of all candidates screened by the system.</p>
+        </div>
+
+        <div class="card">
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Candidate</th>
+                            <th>Job Profile</th>
+                            <th>AI Score</th>
+                            <th>Current Status</th>
+                            <th>Applied On</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for app in applications %}
+                        <tr>
+                            <td style="font-weight: 600;">{{ app.name }}</td>
+                            <td>{{ app.job }}</td>
+                            <td><strong style="color: var(--primary);">{{ app.score }}%</strong></td>
+                            <td><span class="status-badge status-{{ app.status }}">{{ app.status | replace('_', ' ')
+                                    }}</span></td>
+                            <td>{{ app.date }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-muted);">No
+                                applications found in the system.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interviewer Dashboard | AI Resume Screener</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --primary-light: #c4b5fd;
+            --bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        aside {
+            background: var(--sidebar-bg);
+            padding: 2rem;
+            border-right: 1px solid var(--border);
+        }
+
+        main {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(to right, #8b5cf6, #d946ef);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        nav a:hover,
+        nav a.active {
+            background: rgba(139, 92, 246, 0.05);
+            color: var(--primary);
+        }
+
+        .candidate-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .candidate-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .score-badge {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .feedback-box {
+            background: #f8fafc;
+            padding: 1.25rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            font-size: 0.875rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.75rem;
+            border-radius: 10px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+        }
+
+        .btn-outline {
+            background: #ffffff;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+    </style>
+</head>
+
+<body>
+    <aside>
+        <div class="logo">AI Screener</div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('interviewer_dashboard') }}" class="active">Shortlisted Calls</a></li>
+                <li><a href="{{ url_for('interviewer_schedule') }}">Interview Schedule</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </aside>
+    <main>
+        <div class="header" style="margin-bottom: 2rem;">
+            <h1>Interviewer Dashboard</h1>
+            <p style="color: #94a3b8;">Welcome back, {{ name if name else 'Interviewer' }}</p>
+        </div>
+
+        <div class="candidate-grid">
+            {% for candidate in candidates %}
+            <div class="candidate-card">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <h2 style="margin:0; font-size: 1.25rem;">{{ candidate.name }}</h2>
+                        <p style="color: var(--text-muted); margin: 4px 0;">{{ candidate.job }}</p>
+                    </div>
+                    <div class="score-badge">{{ candidate.score }}% Fit</div>
+                </div>
+
+                <div class="feedback-box">
+                    <strong>AI Evaluation:</strong><br>
+                    {{ candidate.feedback }}
+                </div>
+
+                <div class="actions">
+                    <a href="/{{ candidate.resume_path }}" target="_blank" class="btn btn-outline">View CV</a>
+                    <button class="btn btn-primary">Schedule</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+
+</html>

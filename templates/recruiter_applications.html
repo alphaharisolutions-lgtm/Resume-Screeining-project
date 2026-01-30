@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Applications | Recruiter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #818cf8;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        aside {
+            background: var(--sidebar-bg);
+            padding: 2rem;
+            border-right: 1px solid var(--border);
+        }
+
+        main {
+            padding: 3rem;
+            max-width: 1200px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(to right, #818cf8, #fbbf24);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        nav a {
+            color: #64748b;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        nav a:hover,
+        nav a.active {
+            background: rgba(129, 140, 248, 0.05);
+            color: var(--primary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            margin-top: 2rem;
+        }
+
+        th {
+            text-align: left;
+            padding: 1.25rem 1rem;
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 1.25rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .status-unseen {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .status-shortlisted {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .status-interview_scheduled {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <aside>
+        <div class="logo">Recruiter Pro</div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('recruiter_dashboard') }}">Overview</a></li>
+                <li><a href="{{ url_for('recruiter_jds') }}">Job Descriptions</a></li>
+                <li><a href="{{ url_for('auto_shortlist_config') }}">Auto-Shortlist</a></li>
+                <li><a href="#" class="active">Applications</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </aside>
+    <main>
+        <a href="{{ url_for('recruiter_dashboard') }}" class="back-btn">← Back to Overview</a>
+        <h1>All Candidate Applications</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th>Job Position</th>
+                    <th>Score</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cand in candidates %}
+                <tr>
+                    <td style="font-weight: 600;">{{ cand.name }}</td>
+                    <td>{{ cand.job }}</td>
+                    <td><strong style="color: var(--primary);">{{ cand.score }}%</strong></td>
+                    <td><span class="status-badge status-{{ cand.status }}">{{ (cand.status | replace('_', ' ') |
+                            capitalize) if cand.status != 'rejected' else 'Not Selected' }}</span></td>
+                    <td>
+                        {% if cand.status == 'unseen' %}
+                        <button onclick="updateStatus({{ cand.id }}, 'shortlist')"
+                            class="btn btn-success">Shortlist</button>
+                        <button onclick="updateStatus({{ cand.id }}, 'reject')" class="btn btn-danger">Reject</button>
+                        {% elif cand.status == 'shortlisted' %}
+                        <button onclick="updateStatus({{ cand.id }}, 'reject')" class="btn btn-danger">Reject</button>
+                        {% elif cand.status == 'rejected' %}
+                        <button onclick="updateStatus({{ cand.id }}, 'shortlist')"
+                            class="btn btn-success">Shortlist</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #94a3b8; padding: 3rem;">No applications.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+
+    <script>
+        function updateStatus(id, action) {
+            const url = action === 'shortlist' ? `/recruiter/shortlist/${id}` : `/recruiter/reject/${id}`;
+            fetch(url, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) location.reload();
+                });
+        }
+    </script>
+</body>
+
+</html>

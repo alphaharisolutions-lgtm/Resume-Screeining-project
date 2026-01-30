@@ -1,0 +1,11 @@
+flask
+flask-sqlalchemy
+werkzeug
+pandas
+numpy
+plotly
+sentence-transformers
+torch
+python-docx
+pdfminer.six
+scikit-learn

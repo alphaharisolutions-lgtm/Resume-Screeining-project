@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | AI Resume Screener</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #ec4899;
+            --bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        aside {
+            background: var(--sidebar-bg);
+            padding: 2rem;
+            border-right: 1px solid var(--border);
+        }
+
+        main {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(to right, #6366f1, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        nav a:hover,
+        nav a.active {
+            background: rgba(99, 102, 241, 0.05);
+            color: var(--primary);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card h3 {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin: 0 0 0.5rem 0;
+        }
+
+        .stat-card p {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--text);
+        }
+
+        .upload-section {
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 24px;
+            border: 2px dashed #cbd5e1;
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: 0.3s;
+        }
+
+        .upload-section:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.02);
+        }
+
+        .upload-section input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            display: inline-block;
+            font-weight: 600;
+            transition: 0.3s;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2);
+        }
+
+        .upload-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            height: 350px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .jd-preview {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            text-align: left;
+            border: 1px solid var(--border);
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .jd-preview h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--primary);
+        }
+
+        .jd-preview p {
+            font-size: 0.875rem;
+            color: var(--text);
+            line-height: 1.5;
+            margin-bottom: 1rem;
+            white-space: pre-wrap;
+        }
+
+        .jd-preview .skills {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .jd-preview .skill-tag {
+            background: #f1f5f9;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Hidden data placeholders to avoid Jinja/JS bracket conflicts -->
+    <div id="data-store" data-jobs='{{ jobs_json | tojson | safe }}'
+        data-fitment='[{{ results | selectattr("score", "gt", 80) | list | length }}, {{ results | selectattr("score", "le", 80) | selectattr("score", "gt", 50) | list | length }}, {{ results | selectattr("score", "le", 50) | list | length }}]'
+        data-history-x='[{% for r in results %}"{{ r.date }}"{% if not loop.last %},{% endif %}{% endfor %}]'
+        data-history-y='[{% for r in results %}{{ r.score }}{% if not loop.last %},{% endif %}{% endfor %}]'
+        style="display:none">
+    </div>
+
+    <aside>
+        <div class="logo">AI Screener</div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('student_dashboard') }}" class="active">Dashboard</a></li>
+                <li><a href="{{ url_for('student_resumes') }}">My Resumes</a></li>
+                <li><a href="{{ url_for('student_matches') }}">Job Matches</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </aside>
+    <main>
+        <div class="header">
+            <div>
+                <h1 style="margin:0">Dashboard</h1>
+                <p style="color:#94a3b8; margin:0.5rem 0 0 0">Welcome back, {{ name if name else 'Student' }}!</p>
+            </div>
+            <div class="user-profile">
+                <div class="avatar">{{ name[0] if name else 'S' }}</div>
+                <span>{{ name if name else 'Student' }}</span>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Uploads</h3>
+                <p>{{ stats.total_uploads }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Avg. Match Score</h3>
+                <p>{{ stats.avg_score }}%</p>
+            </div>
+            <div class="stat-card">
+                <h3>Shortlisted</h3>
+                <p>{{ stats.shortlisted }}</p>
+            </div>
+        </div>
+
+        <div class="upload-section">
+            <h2 style="margin-top:0">Upload Your Resume</h2>
+            <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+                <select name="jd_id" id="jdSelect" required
+                    style="padding: 12px; border-radius: 12px; margin-bottom: 1.5rem; width: 300px; background: #ffffff; color: var(--text); border: 1px solid var(--border); font-family: inherit;">
+                    <option value="">Select Target Job</option>
+                    {% for jd in jobs %}
+                    <option value="{{ jd.id }}">{{ jd.title }}</option>
+                    {% endfor %}
+                </select>
+
+                <div id="jdPreview" class="jd-preview">
+                    <h4 id="previewTitle"></h4>
+                    <p id="previewDesc"></p>
+                    <div class="skills" id="previewSkills"></div>
+                </div>
+                <br>
+                <label for="resumeFile" class="upload-btn">Choose File & Analyze</label>
+                <input type="file" id="resumeFile" name="resume" required
+                    onchange="document.getElementById('uploadForm').submit()">
+            </form>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-card" id="fitmentChart"></div>
+            <div class="chart-card" id="historyChart"></div>
+        </div>
+    </main>
+
+    <script>
+        const store = document.getElementById('data-store');
+        const globalJobs = JSON.parse(store.dataset.jobs);
+
+        const jdSelect = document.getElementById('jdSelect');
+        const jdPreview = document.getElementById('jdPreview');
+        const previewTitle = document.getElementById('previewTitle');
+        const previewDesc = document.getElementById('previewDesc');
+        const previewSkills = document.getElementById('previewSkills');
+
+        jdSelect.addEventListener('change', (e) => {
+            const jdId = e.target.value;
+            if (jdId && globalJobs[jdId]) {
+                const job = globalJobs[jdId];
+                previewTitle.innerText = job.title;
+                previewDesc.innerText = job.description;
+                previewSkills.innerHTML = '';
+                if (job.skills) {
+                    job.skills.split(',').forEach(skill => {
+                        if (skill.trim()) {
+                            const span = document.createElement('span');
+                            span.className = 'skill-tag';
+                            span.innerText = skill.trim();
+                            previewSkills.appendChild(span);
+                        }
+                    });
+                }
+                jdPreview.style.display = 'block';
+            } else {
+                jdPreview.style.display = 'none';
+            }
+        });
+
+        // Fitment Chart
+        const fitmentValues = JSON.parse(store.dataset.fitment);
+        Plotly.newPlot('fitmentChart', [{
+            values: fitmentValues,
+            labels: ['High Match', 'Medium Match', 'Low Match'],
+            type: 'pie',
+            hole: 0.4,
+            marker: { colors: ['#4ade80', '#fbbf24', '#f87171'] }
+        }], {
+            title: 'Your Fitment Distribution',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { family: 'Outfit', color: '#1e293b' },
+            margin: { t: 50, b: 20, l: 20, r: 20 }
+        });
+
+        // History Chart
+        const historyX = JSON.parse(store.dataset.historyX);
+        const historyY = JSON.parse(store.dataset.historyY);
+        Plotly.newPlot('historyChart', [{
+            x: historyX,
+            y: historyY,
+            type: 'scatter',
+            mode: 'lines+markers',
+            line: { color: '#6366f1', width: 3 },
+            marker: { size: 8, color: '#4338ca' }
+        }], {
+            title: 'Your Performance Trend',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { family: 'Outfit', color: '#1e293b' },
+            xaxis: { gridcolor: '#f1f5f9' },
+            yaxis: { gridcolor: '#f1f5f9', range: [0, 100] }
+        });
+    </script>
+</body>
+
+</html>

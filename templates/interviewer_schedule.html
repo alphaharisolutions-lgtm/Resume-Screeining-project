@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Schedule | Interviewer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8b5cf6;
+            --bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: #1e293b;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        aside {
+            background: var(--sidebar-bg);
+            padding: 2rem;
+            border-right: 1px solid var(--border);
+        }
+
+        main {
+            padding: 3rem;
+            max-width: 1200px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(to right, #8b5cf6, #d946ef);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        nav a {
+            color: #64748b;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        nav a:hover,
+        nav a.active {
+            background: rgba(139, 92, 246, 0.05);
+            color: var(--primary);
+        }
+
+        .schedule-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <aside>
+        <div class="logo">AI Screener</div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('interviewer_dashboard') }}">Shortlisted Calls</a></li>
+                <li><a href="#" class="active">Interview Schedule</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </aside>
+    <main>
+        <a href="{{ url_for('interviewer_dashboard') }}" class="back-btn">← Back to Overview</a>
+        <h1>Interview Calendar</h1>
+        <div class="schedule-card">
+            <p>Calendar integration coming soon. All interviews are currently managed via the dashboard.</p>
+        </div>
+    </main>
+</body>
+
+</html>

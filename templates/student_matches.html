@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Matches | AI Resume Screener</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        aside {
+            background: var(--sidebar-bg);
+            padding: 2rem;
+            border-right: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        main {
+            padding: 3rem;
+            max-width: 1200px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(to right, #6366f1, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        nav a:hover,
+        nav a.active {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        .header {
+            margin-bottom: 3rem;
+        }
+
+        .match-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .match-info h3 {
+            margin: 0 0 0.5rem 0;
+            color: var(--primary);
+        }
+
+        .score-badge {
+            background: #dcfce7;
+            color: #15803d;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 5rem 0;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+    <aside>
+        <div class="logo">AI Screener</div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('student_dashboard') }}">Dashboard</a></li>
+                <li><a href="{{ url_for('student_resumes') }}">My Resumes</a></li>
+                <li><a href="{{ url_for('student_matches') }}" class="active">Job Matches</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </aside>
+    <main>
+        <a href="{{ url_for('student_dashboard') }}" class="back-btn">← Back to Dashboard</a>
+        <div class="header">
+            <h1>Successful Matches</h1>
+            <p style="color: var(--text-muted);">Congratulations! These are the jobs where your profile was shortlisted.
+            </p>
+        </div>
+        {% for match in results %}
+        <div class="match-card">
+            <div class="match-info">
+                <h3>{{ match.job_title }}</h3>
+                <p style="margin:0; font-size: 0.875rem; color: var(--text-muted);">Shortlisted on: {{ match.date }}</p>
+            </div>
+            <div class="score-badge">{{ match.score }}% Fit</div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No job matches yet. Keep improving your resume!</p>
+        </div>
+        {% endfor %}
+    </main>
+</body>
+
+</html>

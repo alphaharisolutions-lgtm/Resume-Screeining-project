@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruiter Dashboard | AI Resume Screener</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        :root {
+            --primary: #818cf8;
+            --primary-hover: #6366f1;
+            --secondary: #fbbf24;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        aside {
+            background: var(--sidebar-bg);
+            padding: 2rem;
+            border-right: 1px solid var(--border);
+        }
+
+        main {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(to right, #818cf8, #fbbf24);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        nav a:hover,
+        nav a.active {
+            background: rgba(129, 140, 248, 0.05);
+            color: var(--primary);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.25rem;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .stat-card p {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem;
+            background: #f8fafc;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9375rem;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .status-unseen {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .status-shortlisted {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .status-interview_scheduled {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .assign-form {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        select {
+            padding: 6px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            font-family: inherit;
+        }
+
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 20px;
+            height: 300px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Hidden data placeholders to avoid Jinja/JS bracket conflicts -->
+    <div id="data-store" data-candidates='{{ candidates | tojson | safe }}' style="display:none">
+    </div>
+
+    <aside>
+        <div class="logo">Recruiter Pro</div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('recruiter_dashboard') }}" class="active">Overview</a></li>
+                <li><a href="{{ url_for('recruiter_jds') }}">Job Descriptions</a></li>
+                <li><a href="{{ url_for('auto_shortlist_config') }}">Auto-Shortlist</a></li>
+                <li><a href="{{ url_for('recruiter_applications') }}">All Applications</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </aside>
+    <main>
+        <div class="header">
+            <div>
+                <h1 style="margin:0">Recruiter Dashboard</h1>
+                <p style="color:#94a3b8; margin:0.25rem 0 0 0">Welcome back, {{ name if name else 'Recruiter' }}</p>
+            </div>
+            <a href="{{ url_for('recruiter_jds') }}" class="btn btn-primary"
+                style="padding: 12px 24px; font-weight: 600;">
+                + Post New Job
+            </a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Active JDs</h3>
+                <p>{{ stats.active_jds }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Applicants</h3>
+                <p>{{ stats.total_applicants }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Shortlisted</h3>
+                <p>{{ stats.shortlisted }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Avg Match</h3>
+                <p>{{ stats.avg_score }}%</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Recent Applicants</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Job</th>
+                            <th>AI Score</th>
+                            <th>Status</th>
+                            <th>Interviewer</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cand in candidates %}
+                        <tr>
+                            <td style="font-weight: 600;">{{ cand.name }}</td>
+                            <td>{{ cand.job }}</td>
+                            <td><strong style="color: var(--primary);">{{ cand.score }}%</strong></td>
+                            <td><span class="status-badge status-{{ cand.status }}">{{ cand.status | replace('_', ' ')
+                                    }}</span></td>
+                            <td>{{ cand.interviewer_name }}</td>
+                            <td>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    {% if cand.status == 'unseen' %}
+                                    <button onclick="updateStatus({{ cand.id }}, 'shortlist')"
+                                        class="btn btn-success">Shortlist</button>
+                                    <button onclick="updateStatus({{ cand.id }}, 'reject')"
+                                        class="btn btn-danger">Reject</button>
+                                    {% elif cand.status == 'shortlisted' %}
+                                    <form action="{{ url_for('assign_interviewer') }}" method="POST"
+                                        class="assign-form">
+                                        <input type="hidden" name="result_id" value="{{ cand.id }}">
+                                        <select name="interviewer_id" required>
+                                            <option value="">Assign Interviewer</option>
+                                            {% for intv in interviewers %}
+                                            <option value="{{ intv.id }}">{{ intv.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-primary">Send</button>
+                                    </form>
+                                    <button onclick="updateStatus({{ cand.id }}, 'reject')"
+                                        class="btn btn-danger">Reject</button>
+                                    {% elif cand.status == 'rejected' %}
+                                    <button onclick="updateStatus({{ cand.id }}, 'shortlist')"
+                                        class="btn btn-success">Recover</button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-card" id="scoreDist"></div>
+            <div class="chart-card" id="statusPie"></div>
+        </div>
+    </main>
+
+    <script>
+        const store = document.getElementById('data-store');
+        const candidates = JSON.parse(store.dataset.candidates);
+
+        function updateStatus(id, action) {
+            const url = action === 'shortlist' ? `/recruiter/shortlist/${id}` : `/recruiter/reject/${id}`;
+            fetch(url, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) location.reload();
+                });
+        }
+
+        // Score Distribution
+        const scores = candidates.map(c => c.score);
+        Plotly.newPlot('scoreDist', [{
+            x: scores,
+            type: 'histogram',
+            nbinsx: 10,
+            marker: { color: '#818cf8', opacity: 0.7 }
+        }], {
+            title: 'Applicant Score Distribution',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { family: 'Outfit', color: '#1e293b' },
+            margin: { t: 40, b: 40, l: 40, r: 20 }
+        });
+
+        // Status Breakdown
+        const statusMap = {};
+        candidates.forEach(c => {
+            statusMap[c.status] = (statusMap[c.status] || 0) + 1;
+        });
+
+        Plotly.newPlot('statusPie', [{
+            values: Object.values(statusMap),
+            labels: Object.keys(statusMap).map(s => s.replace('_', ' ').toUpperCase()),
+            type: 'pie',
+            hole: 0.4,
+            marker: { colors: ['#22c55e', '#64748b', '#ef4444', '#818cf8'] }
+        }], {
+            title: 'Application Status Breakdown',
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { family: 'Outfit', color: '#1e293b' },
+            margin: { t: 40, b: 20, l: 20, r: 20 }
+        });
+    </script>
+</body>
+
+</html>

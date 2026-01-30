@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Shortlist Config | Recruiter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #818cf8;
+            --bg: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        aside {
+            background: var(--sidebar-bg);
+            padding: 2rem;
+            border-right: 1px solid var(--border);
+        }
+
+        main {
+            padding: 3rem;
+            max-width: 1000px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(to right, #818cf8, #fbbf24);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        nav li {
+            margin-bottom: 0.5rem;
+        }
+
+        nav a {
+            color: #64748b;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        nav a:hover,
+        nav a.active {
+            background: rgba(129, 140, 248, 0.05);
+            color: var(--primary);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .jd-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .jd-row:last-child {
+            border-bottom: none;
+        }
+
+        .threshold-form {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        input[type="range"] {
+            width: 150px;
+        }
+
+        .score-display {
+            font-weight: 600;
+            color: var(--primary);
+            min-width: 40px;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .flash {
+            padding: 1rem;
+            background: #dcfce7;
+            color: #15803d;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <aside>
+        <div class="logo">Recruiter Pro</div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('recruiter_dashboard') }}">Overview</a></li>
+                <li><a href="{{ url_for('recruiter_jds') }}">Job Descriptions</a></li>
+                <li><a href="{{ url_for('auto_shortlist_config') }}" class="active">Auto-Shortlist</a></li>
+                <li><a href="{{ url_for('recruiter_applications') }}">All Applications</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </aside>
+    <main>
+        <h1>AI Auto-Shortlist Configuration</h1>
+        <p style="color: #64748b; margin-bottom: 2rem;">Set the minimum AI score threshold for candidates to be
+            automatically shortlisted for each job.</p>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        <div class="flash">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div class="card">
+            {% for jd in jds %}
+            <div class="jd-row">
+                <div>
+                    <h3 style="margin:0">{{ jd.title }}</h3>
+                    <p style="margin:5px 0 0 0; font-size: 0.875rem; color: #94a3b8;">Threshold: {{
+                        jd.auto_shortlist_threshold }}%</p>
+                </div>
+                <form action="{{ url_for('auto_shortlist_config') }}" method="POST" class="threshold-form">
+                    <input type="hidden" name="jd_id" value="{{ jd.id }}">
+                    <input type="range" name="threshold" min="0" max="100" value="{{ jd.auto_shortlist_threshold }}"
+                        oninput="this.nextElementSibling.innerText = this.value + '%'">
+                    <span class="score-display">{{ jd.auto_shortlist_threshold | int }}%</span>
+                    <button type="submit" class="btn">Update</button>
+                </form>
+            </div>
+            {% else %}
+            <p>No jobs posted yet. <a href="{{ url_for('recruiter_jds') }}">Post one now.</a></p>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+
+</html>
