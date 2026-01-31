@@ -48,4 +48,6 @@ class ScreeningResult(db.Model):
     feedback = db.Column(db.Text)
     status = db.Column(db.String(50), default='unseen')
     interviewer_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    interview_date = db.Column(db.String(20), nullable=True)
+    interview_time = db.Column(db.String(20), nullable=True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())

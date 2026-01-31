@@ -314,9 +314,11 @@
                             <td>
                                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                     {% if cand.status == 'unseen' %}
-                                    <button onclick="updateStatus({{ cand.id }}, 'shortlist')"
+                                    <button data-id="{{ cand.id }}" data-action="shortlist"
+                                        onclick="updateStatus(this.dataset.id, this.dataset.action)"
                                         class="btn btn-success">Shortlist</button>
-                                    <button onclick="updateStatus({{ cand.id }}, 'reject')"
+                                    <button data-id="{{ cand.id }}" data-action="reject"
+                                        onclick="updateStatus(this.dataset.id, this.dataset.action)"
                                         class="btn btn-danger">Reject</button>
                                     {% elif cand.status == 'shortlisted' %}
                                     <form action="{{ url_for('assign_interviewer') }}" method="POST"
@@ -330,10 +332,12 @@
                                         </select>
                                         <button type="submit" class="btn btn-primary">Send</button>
                                     </form>
-                                    <button onclick="updateStatus({{ cand.id }}, 'reject')"
+                                    <button data-id="{{ cand.id }}" data-action="reject"
+                                        onclick="updateStatus(this.dataset.id, this.dataset.action)"
                                         class="btn btn-danger">Reject</button>
                                     {% elif cand.status == 'rejected' %}
-                                    <button onclick="updateStatus({{ cand.id }}, 'shortlist')"
+                                    <button data-id="{{ cand.id }}" data-action="shortlist"
+                                        onclick="updateStatus(this.dataset.id, this.dataset.action)"
                                         class="btn btn-success">Recover</button>
                                     {% endif %}
                                 </div>

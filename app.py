@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from db.models import db, User
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
@@ -99,7 +100,7 @@ def student_dashboard():
     stats = {
         'total_uploads': len(results),
         'avg_score': sum([r['score'] for r in results]) // len(results) if results else 0,
-        'shortlisted': len([r for r in results if r['status'] == 'shortlisted'])
+        'shortlisted': len([r for r in results if r['status'] in ['shortlisted', 'interview_scheduled']])
     }
         
     jobs_json = {str(j.id): {"title": j.title, "description": j.description, "skills": j.skills} for j in jobs}
@@ -138,7 +139,7 @@ def student_matches():
     # Only show shortlisted results as matches
     student_resumes = Resume.query.filter_by(student_id=session['user_id']).all()
     resume_ids = [r.id for r in student_resumes]
-    matches = ScreeningResult.query.filter(ScreeningResult.resume_id.in_(resume_ids), ScreeningResult.status == 'shortlisted').all() if resume_ids else []
+    matches = ScreeningResult.query.filter(ScreeningResult.resume_id.in_(resume_ids), ScreeningResult.status.in_(['shortlisted', 'interview_scheduled'])).all() if resume_ids else []
     
     results = []
     for m in matches:
@@ -150,6 +151,29 @@ def student_matches():
                 'date': m.created_at.strftime('%Y-%m-%d')
             })
     return render_template('student_matches.html', results=results, name=user.name)
+
+@app.route('/student/interviews')
+def student_interviews():
+    if 'user_id' not in session or session['role'] != 'student':
+        return redirect(url_for('login'))
+    user = User.query.get(session['user_id'])
+    student_resumes = Resume.query.filter_by(student_id=session['user_id']).all()
+    resume_ids = [r.id for r in student_resumes]
+    interviews = ScreeningResult.query.filter(ScreeningResult.resume_id.in_(resume_ids), ScreeningResult.status == 'interview_scheduled').all() if resume_ids else []
+    
+    results = []
+    for i in interviews:
+        jd = JobDescription.query.get(i.jd_id)
+        interviewer = User.query.get(i.interviewer_id)
+        if jd:
+            results.append({
+                'job_title': jd.title,
+                'interviewer_name': interviewer.name if interviewer else 'TBD',
+                'interview_date': i.interview_date,
+                'interview_time': datetime.strptime(i.interview_time, '%H:%M').strftime('%I:%M %p') if i.interview_time else "TBD",
+                'date': i.created_at.strftime('%Y-%m-%d')
+            })
+    return render_template('student_interviews.html', results=results, name=user.name)
 
 @app.route('/recruiter/jds')
 def recruiter_jds():
@@ -180,7 +204,22 @@ def interviewer_schedule():
     if 'user_id' not in session or session['role'] != 'interviewer':
         return redirect(url_for('login'))
     user = User.query.get(session['user_id'])
-    return render_template('interviewer_schedule.html', name=user.name)
+    assigned = ScreeningResult.query.filter_by(interviewer_id=session['user_id']).all()
+    candidates = []
+    for s in assigned:
+        resume = Resume.query.get(s.resume_id)
+        if not resume: continue
+        u = User.query.get(resume.student_id)
+        jd = JobDescription.query.get(s.jd_id)
+        if u and jd:
+            candidates.append({
+                'name': u.name,
+                'job': jd.title,
+                'interview_date': s.interview_date if s.interview_date else "Pending",
+                'interview_time': datetime.strptime(s.interview_time, '%H:%M').strftime('%I:%M %p') if s.interview_time else "Pending",
+                'date': s.created_at.strftime('%Y-%m-%d')
+            })
+    return render_template('interviewer_schedule.html', name=user.name, candidates=candidates)
 
 @app.route('/upload', methods=['POST'])
 def upload_resume():
@@ -248,7 +287,7 @@ def recruiter_dashboard():
     stats = {
         'active_jds': len(my_jds),
         'total_applicants': len(candidates),
-        'shortlisted': len([c for c in candidates if c['status'] == 'shortlisted']),
+        'shortlisted': len([c for c in candidates if c['status'] in ['shortlisted', 'interview_scheduled']]),
         'avg_score': sum([c['score'] for c in candidates]) // len(candidates) if candidates else 0
     }
     user = User.query.get(session['user_id'])
@@ -448,14 +487,35 @@ def interviewer_dashboard():
         jd = JobDescription.query.get(s.jd_id)
         if u and jd:
             candidates.append({
+                'id': s.id,
                 'name': u.name,
                 'job': jd.title,
                 'score': s.score,
                 'feedback': s.feedback if s.feedback else "Strong alignment with required skills.",
-                'resume_path': resume.file_path.replace('\\', '/')
+                'resume_filename': os.path.basename(resume.file_path),
+                'interview_date': s.interview_date,
+                'interview_time': datetime.strptime(s.interview_time, '%H:%M').strftime('%I:%M %p') if s.interview_time else "TBD"
             })
     user = User.query.get(session['user_id'])
     return render_template('interviewer_dashboard.html', candidates=candidates, name=user.name)
+
+@app.route('/interviewer/update-schedule', methods=['POST'])
+def update_interview_schedule():
+    if 'user_id' not in session or session['role'] != 'interviewer':
+        return redirect(url_for('login'))
+    
+    result_id = request.form.get('result_id')
+    date = request.form.get('date')
+    time = request.form.get('time')
+    
+    res = ScreeningResult.query.get(result_id)
+    if res and res.interviewer_id == session['user_id']:
+        res.interview_date = date
+        res.interview_time = time
+        db.session.commit()
+        flash('Interview schedule updated!')
+    
+    return redirect(url_for('interviewer_dashboard'))
 
 @app.route('/recruiter/delete-jd/<int:jd_id>', methods=['POST'])
 def delete_jd(jd_id):
@@ -481,6 +541,10 @@ def toggle_jd(jd_id):
         status = "active" if jd.is_active else "inactive"
         flash(f'Job Posting marked as {status}!')
     return redirect(url_for('recruiter_jds'))
+
+@app.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/logout')
 def logout():

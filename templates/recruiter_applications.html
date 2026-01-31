@@ -195,13 +195,19 @@
                             capitalize) if cand.status != 'rejected' else 'Not Selected' }}</span></td>
                     <td>
                         {% if cand.status == 'unseen' %}
-                        <button onclick="updateStatus({{ cand.id }}, 'shortlist')"
+                        <button data-id="{{ cand.id }}" data-action="shortlist"
+                            onclick="updateStatus(this.dataset.id, this.dataset.action)"
                             class="btn btn-success">Shortlist</button>
-                        <button onclick="updateStatus({{ cand.id }}, 'reject')" class="btn btn-danger">Reject</button>
+                        <button data-id="{{ cand.id }}" data-action="reject"
+                            onclick="updateStatus(this.dataset.id, this.dataset.action)"
+                            class="btn btn-danger">Reject</button>
                         {% elif cand.status == 'shortlisted' %}
-                        <button onclick="updateStatus({{ cand.id }}, 'reject')" class="btn btn-danger">Reject</button>
+                        <button data-id="{{ cand.id }}" data-action="reject"
+                            onclick="updateStatus(this.dataset.id, this.dataset.action)"
+                            class="btn btn-danger">Reject</button>
                         {% elif cand.status == 'rejected' %}
-                        <button onclick="updateStatus({{ cand.id }}, 'shortlist')"
+                        <button data-id="{{ cand.id }}" data-action="shortlist"
+                            onclick="updateStatus(this.dataset.id, this.dataset.action)"
                             class="btn btn-success">Shortlist</button>
                         {% endif %}
                     </td>

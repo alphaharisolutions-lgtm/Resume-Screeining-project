@@ -202,6 +202,7 @@
                 <li><a href="{{ url_for('student_dashboard') }}">Dashboard</a></li>
                 <li><a href="{{ url_for('student_resumes') }}" class="active">My Resumes</a></li>
                 <li><a href="{{ url_for('student_matches') }}">Job Matches</a></li>
+                <li><a href="{{ url_for('student_interviews') }}">Interviews</a></li>
                 <li><a href="{{ url_for('logout') }}">Logout</a></li>
             </ul>
         </nav>
@@ -226,7 +227,7 @@
                 </div>
                 <div class="score-box">
                     <span class="score-value">{{ res.score }}%</span>
-                    <span class="status-tag status-{{ res.status }}">{{ res.status | capitalize }}</span>
+                    <span class="status-tag status-{{ res.status }}">{{ res.status | replace('_', ' ') }}</span>
                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">{{ res.date }}</div>
                 </div>
             </div>

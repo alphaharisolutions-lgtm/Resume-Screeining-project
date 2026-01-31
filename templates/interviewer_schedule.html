@@ -106,8 +106,29 @@
     <main>
         <a href="{{ url_for('interviewer_dashboard') }}" class="back-btn">← Back to Overview</a>
         <h1>Interview Calendar</h1>
-        <div class="schedule-card">
-            <p>Calendar integration coming soon. All interviews are currently managed via the dashboard.</p>
+        <div class="schedule-card" style="text-align: left; color: inherit;">
+            {% if candidates %}
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border);">
+                        <th style="padding: 1rem; text-align: left;">Candidate</th>
+                        <th style="padding: 1rem; text-align: left;">Job Role</th>
+                        <th style="padding: 1rem; text-align: left;">Scheduled Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cand in candidates %}
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 1rem;"><strong>{{ cand.name }}</strong></td>
+                        <td style="padding: 1rem;">{{ cand.job }}</td>
+                        <td style="padding: 1rem;">{{ cand.interview_date }} at {{ cand.interview_time }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="text-align: center; padding: 2rem;">No interviews currently scheduled.</p>
+            {% endif %}
         </div>
     </main>
 </body>

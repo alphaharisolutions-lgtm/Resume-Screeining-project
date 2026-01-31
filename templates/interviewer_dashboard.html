@@ -169,9 +169,40 @@
                     {{ candidate.feedback }}
                 </div>
 
-                <div class="actions">
-                    <a href="/{{ candidate.resume_path }}" target="_blank" class="btn btn-outline">View CV</a>
-                    <button class="btn btn-primary">Schedule</button>
+                <div class="actions" style="margin-bottom: 1rem;">
+                    <a href="{{ url_for('uploaded_file', filename=candidate.resume_filename) }}" target="_blank"
+                        class="btn btn-outline">View CV</a>
+                    <a href="{{ url_for('interviewer_schedule') }}" class="btn btn-primary">Calendar</a>
+                </div>
+
+                <div style="border-top: 1px solid var(--border); padding-top: 1rem;">
+                    <form action="{{ url_for('update_interview_schedule') }}" method="POST">
+                        <input type="hidden" name="result_id" value="{{ candidate.id }}">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <div>
+                                <label
+                                    style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Date</label>
+                                <input type="date" name="date"
+                                    value="{{ candidate.interview_date if candidate.interview_date else '' }}" required
+                                    style="width: 100%; padding: 6px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit;">
+                            </div>
+                            <div>
+                                <label
+                                    style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Time</label>
+                                <input type="time" name="time"
+                                    value="{{ candidate.interview_time if candidate.interview_time else '' }}" required
+                                    style="width: 100%; padding: 6px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit;">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 8px;">Update
+                            Schedule</button>
+                    </form>
+                    {% if candidate.interview_date %}
+                    <p
+                        style="font-size: 0.875rem; color: var(--primary); margin-top: 12px; font-weight: 600; text-align: center; background: rgba(139, 92, 246, 0.05); padding: 8px; border-radius: 8px;">
+                        🕒 Scheduled: {{ candidate.interview_date }} at {{ candidate.interview_time }}
+                    </p>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
